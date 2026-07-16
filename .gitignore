@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.idea/
+.vscode/
+config.json
+.env
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+build_out.log
+
