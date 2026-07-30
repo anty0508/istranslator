@@ -33,7 +33,6 @@ DEFAULTS = {
     "hotkey_replace": "ctrl+'",
     "overlay_timeout_ms": 8000,
     "restore_clipboard": True,
-    "history_size": 10,
 }
 
 

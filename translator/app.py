@@ -1,7 +1,6 @@
 import queue
 import threading
 import time
-from collections import deque
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
@@ -29,7 +28,6 @@ class TranslatorApp:
     def __init__(self, app):
         self.app = app
         self.config = Config.load()
-        self._history = deque(maxlen=max(0, int(self.config["history_size"])))
         self._queue = queue.Queue(maxsize=1)
         self._last_dispatch = 0.0
         self._worker = threading.Thread(
@@ -105,11 +103,10 @@ class TranslatorApp:
             return
         self.bridge.overlay_begin.emit()
         try:
-            result = translate(text, self.config["lang1"], self.config, history=list(self._history))
+            result = translate(text, self.config["lang1"], self.config)
         except TranslationError as exc:
             log.error("translation error: %s", exc)
             return
-        self._history.append(text)
         log.info("translated -> %d chars, showing overlay", len(result))
         self.bridge.overlay_update.emit(result)
 
@@ -120,11 +117,10 @@ class TranslatorApp:
             log.info("no text selected; skipping")
             return
         try:
-            result = translate(text, self.config["lang2"], self.config, history=list(self._history))
+            result = translate(text, self.config["lang2"], self.config)
         except TranslationError as exc:
             log.error("translation error: %s", exc)
             return
-        self._history.append(text)
         log.info("translated -> %d chars, pasting", len(result))
         replace_selection(
             result,

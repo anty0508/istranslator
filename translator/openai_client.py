@@ -70,47 +70,41 @@ def warmup(config):
         pass
 
 
-HISTORY_ITEM_MAX = 400
-
-
-def _build_messages(text, target_language, history=None):
-    system_prompt = (
-        f"Translate the user's message into {target_language}. "
-        "Make it read exactly like a real, experienced senior software engineer wrote it — "
-        "the way they'd casually message their boss in a work chat: friendly, easygoing and "
-        "human, while staying professional and respectful. Natural, idiomatic and "
-        "native-sounding, with a relaxed conversational chat tone; never stiff, overly formal, "
-        "stilted or robotic. Keep the original meaning and any technical terms intact. "
-        "Reply with only the translated message — no quotes, labels, notes or explanations."
-    )
+def _build_messages(text, target_language):
+    if target_language == "Chinese (Simplified)":
+        system_prompt = (
+            "You are a bilingual expert in English and Simplified Chinese, with strong "
+            "experience in software engineering and developer communication. "
+            "Your task: translate the user's message into natural, conversational Simplified "
+            "Chinese tailored for developer chats on platforms like Telegram or Lark. "
+            "Chinese style requirements: use casual, native, chat-style Chinese (like developer "
+            "group conversations); keep it concise, fluid and easy to read; use common developer "
+            "terminology and jargon naturally; avoid overly formal, written or textbook-style "
+            "Chinese; make it feel authentic and localized, not obviously translated — natural "
+            "enough that native speakers would not suspect it was translated. Light "
+            "conversational tone is allowed (e.g. \"有点\", \"感觉\", \"可以试试\", \"要不\"), but "
+            "do not overuse it. Keep the original meaning and any technical terms intact. "
+            "Reply with only the translated message — no quotes, labels, notes or explanations."
+        )
+    else:
+        system_prompt = (
+            f"Translate the user's message into {target_language}. "
+            "Make it read exactly like a real, experienced senior software engineer wrote it — "
+            "the way they'd casually message their boss in a work chat: friendly, easygoing and "
+            "human, while staying professional and respectful. Natural, idiomatic and "
+            "native-sounding, with a relaxed conversational chat tone; never stiff, overly formal, "
+            "stilted or robotic. Keep the original meaning and any technical terms intact. "
+            "Reply with only the translated message — no quotes, labels, notes or explanations."
+        )
     messages = [{"role": "system", "content": system_prompt}]
-
-    if history:
-        lines = []
-        for item in history:
-            item = " ".join(item.split())
-            if len(item) > HISTORY_ITEM_MAX:
-                item = item[:HISTORY_ITEM_MAX] + "…"
-            if item:
-                lines.append(f"- {item}")
-        if lines:
-            messages.append({
-                "role": "system",
-                "content": (
-                    "Recent messages in this ongoing conversation, for CONTEXT ONLY — do NOT "
-                    "translate or repeat them. Use them to resolve references and pronouns, keep "
-                    "terminology and names consistent, and match the flow:\n" + "\n".join(lines)
-                ),
-            })
-
     messages.append({"role": "user", "content": text})
     return messages
 
 
-def translate(text, target_language, config, history=None):
+def translate(text, target_language, config):
     client = _get_client(config)
     model = config.effective("model").strip()
-    messages = _build_messages(text, target_language, history)
+    messages = _build_messages(text, target_language)
 
     use_extras = model not in _no_extras
     try:
