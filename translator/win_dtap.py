@@ -15,6 +15,7 @@ WM_SYSKEYUP = 0x0105
 LLKHF_INJECTED = 0x10
 
 VK_CTRLS = {0x11, 0xA2, 0xA3}  # CONTROL, LCONTROL, RCONTROL
+VK_ALTS = {0x12, 0xA4, 0xA5}  # MENU, LMENU, RMENU
 
 wintypes.ULONG_PTR = wintypes.WPARAM
 LRESULT = ctypes.c_ssize_t
@@ -42,9 +43,10 @@ kernel32.GetModuleHandleW.restype = wintypes.HMODULE
 kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
 
 
-class DoubleTapCtrl:
-    def __init__(self, callback, interval=0.4, max_press=0.5):
+class DoubleTapKey:
+    def __init__(self, callback, vks=VK_CTRLS, interval=0.4, max_press=0.5):
         self.callback = callback
+        self.vks = vks
         self.interval = interval
         self.max_press = max_press
         self._hook = None
@@ -76,10 +78,10 @@ class DoubleTapCtrl:
             return
         if now is None:
             now = time.monotonic()
-        is_ctrl = vk in VK_CTRLS
+        is_target = vk in self.vks
 
         if is_down:
-            if is_ctrl:
+            if is_target:
                 if not self._ctrl_down:
                     self._ctrl_down = True
                     self._press_start = now
@@ -88,7 +90,7 @@ class DoubleTapCtrl:
                 self._other_since = True
                 self._last_tap = 0.0
         else:
-            if is_ctrl and self._ctrl_down:
+            if is_target and self._ctrl_down:
                 self._ctrl_down = False
                 clean = (not self._other_since) and (now - self._press_start <= self.max_press)
                 if clean:
@@ -113,3 +115,6 @@ class DoubleTapCtrl:
         except Exception:
             log.exception("double-tap hook error")
         return user32.CallNextHookEx(self._hook, nCode, wParam, lParam)
+
+
+DoubleTapCtrl = DoubleTapKey

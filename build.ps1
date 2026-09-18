@@ -4,10 +4,17 @@
 $ErrorActionPreference = "Stop"
 
 # ensure PyInstaller is available (invoked via `python -m` so PATH doesn't matter)
-python -m PyInstaller --version *> $null
-if ($LASTEXITCODE -ne 0) {
+$havePyInstaller = $true
+try {
+    python -m PyInstaller --version *> $null
+    if ($LASTEXITCODE -ne 0) { $havePyInstaller = $false }
+} catch {
+    $havePyInstaller = $false
+}
+if (-not $havePyInstaller) {
     Write-Host "Installing PyInstaller..." -ForegroundColor Yellow
     python -m pip install pyinstaller
+    if ($LASTEXITCODE -ne 0) { throw "Failed to install PyInstaller" }
 }
 
 # regenerate the app icon (icon.ico is already committed; this just refreshes it)
@@ -23,6 +30,7 @@ python -m PyInstaller --noconfirm --clean `
     --name istranslator `
     --icon assets/icon.ico `
     --collect-all openai `
+    --collect-all httpx `
     --collect-all certifi `
     @addData `
     main.py

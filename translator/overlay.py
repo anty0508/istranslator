@@ -7,6 +7,8 @@ H_MARGIN = 14
 V_MARGIN = 9
 MAX_WIDTH = 560
 FONT_PX = 15
+PER_CHAR_MS = 75
+MAX_TIMEOUT_MS = 40000
 BG_COLOR = QColor(20, 22, 28, 178)  # 0.7 opacity
 BORDER_COLOR = QColor(150, 160, 190, 110)
 
@@ -72,12 +74,19 @@ class OverlayTooltip(QFrame):
         self.raise_()
         self._timer.stop()
 
+    def _duration_for(self, text):
+        if not self._timeout or self._timeout <= 0:
+            return 0
+        reading = len(text) * PER_CHAR_MS
+        return min(max(self._timeout, reading), MAX_TIMEOUT_MS)
+
     def update_text(self, text):
         self._fit(text)
         if not self.isVisible():
             self.show()
-        if self._timeout and self._timeout > 0:
-            self._timer.start(self._timeout)
+        duration = self._duration_for(text)
+        if duration > 0:
+            self._timer.start(duration)
 
     def _reposition(self):
         pos = self._anchor

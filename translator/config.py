@@ -31,7 +31,7 @@ DEFAULTS = {
     "lang2": "Chinese (Simplified)",
     "hotkey_translate": "double-ctrl",
     "hotkey_replace": "ctrl+'",
-    "overlay_timeout_ms": 8000,
+    "overlay_timeout_ms": 11000,
     "restore_clipboard": True,
 }
 
